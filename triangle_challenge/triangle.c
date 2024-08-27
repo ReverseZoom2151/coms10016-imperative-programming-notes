@@ -7,12 +7,75 @@
 
 enum { Equilateral, Isosceles, Right, Scalene, Flat, Impossible, Illegal };
 
+bool checkDigit(char c) {
+    return (('0' <= c) && (c <= '9'));
+}
+
 int convert(const char length[]) {
-    return -1;
+    long digitMultiplier = 1;
+    long result = 0;
+    bool valid = 1;
+
+    for(int i = strlen(length) - 1; i >= 0; i--) {
+        if (valid && (!checkDigit(length[i]))) {
+            valid = 0;
+            result = -1;
+        } else if (valid) {
+            int digit = length[i] - '0';
+            result +=  digit * digitMultiplier;
+            digitMultiplier = digitMultiplier * 10;
+            if (length[0] == '0') result = -1;
+            if (result > INT_MAX) result = -1;
+        }
+    }
+
+    return result;
+}
+
+int checkImpossible(long a, long b, long c) {
+    return ((b + c) < a) ? Impossible : -1;
+}
+
+int checkFlat(long a, long b, long c) {
+    return ((b + c) == a) ? Flat : -1;
+}
+
+int checkEquilateral(long a, long b, long c) {
+    return (a == b) && (a == c) && (b == c) ? Equilateral : -1;
+}
+
+int checkIsosceles(long a, long b, long c) {
+    return (a == b) || (a == c) || (b == c) ? Isosceles : -1;
+}
+
+int checkRightAngle(long a, long b, long c) {
+    return ((b * b) + (c * c)) == a * a ? Right : -1;
+}
+
+int checkScalene(long a, long b, long c) {
+    return (a != b) && (a != c) && (b != c) ? Scalene : -1;
+}
+
+int checkIllegal(long a, long b, long c) {
+    return (a < 0) || (b < 0) || (c < 0) ? Illegal : -1;
 }
 
 int triangle(int a, int b, int c) {
-    return Equilateral;
+    long totalLengths = (long)a + (long)b + (long)c;
+    long longestSide = a > b ? (a > c ? a : c) : (b > c ? b : c);
+    long shortestSide = a < b ? (a < c ? a : c) : (b < c ? b : c);
+    long middleSide = totalLengths - (longestSide + shortestSide);
+
+    int triangleType = Illegal;
+
+    if (checkIllegal(longestSide, shortestSide, middleSide) == Illegal) triangleType = Illegal;
+    else if (checkImpossible(longestSide, shortestSide, middleSide) == Impossible) triangleType = Impossible;
+    else if (checkFlat(longestSide, shortestSide, middleSide) == Flat) triangleType = Flat;
+    else if (checkEquilateral(longestSide, shortestSide, middleSide) == Equilateral) triangleType = Equilateral;
+    else if (checkIsosceles(longestSide, shortestSide, middleSide) == Isosceles) triangleType = Isosceles;
+    else if (checkRightAngle(longestSide, shortestSide, middleSide) == Right) triangleType = Right;
+    else if (checkScalene(longestSide, shortestSide, middleSide) == Scalene) triangleType = Scalene;
+    return triangleType;
 }
 
 void print(int type) {
@@ -130,13 +193,11 @@ int main(int n, char *args[n]) {
     setbuf(stdout, NULL);
     if (n == 1) {
         test();
-    }
-    else if (n == 4) {
+    } else if (n == 4) {
         int a = convert(args[1]), b = convert(args[2]), c = convert(args[3]);
         int result = triangle(a, b, c);
         print(result);
-    }
-    else {
+    } else {
         fprintf(stderr, "Use e.g.: ./triangle 3 4 5\n");
         exit(1);
     }
